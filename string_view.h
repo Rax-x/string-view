@@ -96,15 +96,14 @@ bool string_view_is_empty(string_view_t sv){
 }
 
 void string_view_trim_left(string_view_t *sv) {
-
-    while(isspace(sv->data[0])){
+    while(isspace(sv->data[0]) && sv->count > 0){
         sv->data++;
         sv->count--;
     }
 }
 
 void string_view_trim_right(string_view_t *sv) {
-    while(isspace(string_view_back(*sv))){
+    while(isspace(string_view_back(*sv)) && sv->count > 0){
         sv->count--;
     }
 }
