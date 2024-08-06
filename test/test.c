@@ -33,6 +33,40 @@ TEST_SUITE(string_view_creation) {
 
 }
 
+TEST_SUITE(string_view_operators) {
+    TEST_CASE("Retrive the first character of the string view"){
+        string_view_t sv = new_string_view_from_cstr("Hello World");
+        string_view_t empty_sv = new_string_view_from_cstr("");
+
+        TEST_ASSERT(string_view_front(sv) == 'H', "Expect the character 'H'.");
+        TEST_ASSERT(string_view_front(empty_sv) == '\0', "Expect the null terminator character.");
+    }
+
+    TEST_CASE("Retrive the last character of the string view"){
+
+        string_view_t sv = new_string_view_from_cstr("Hello World");
+        string_view_t empty_sv = new_string_view_from_cstr("");
+
+        TEST_ASSERT(string_view_back(sv) == 'd', "Expect the character 'd'.");
+        TEST_ASSERT(string_view_back(empty_sv) == '\0', "Expect the null terminator character.");
+    }
+
+    TEST_CASE("Retrive the character of the string view at the specified index"){
+
+        string_view_t sv = new_string_view_from_cstr("Hello World");
+        string_view_t empty_sv = new_string_view_from_cstr("");
+
+        TEST_ASSERT(string_view_at(sv, 0) == 'H', "Expect the character 'H'.");
+        TEST_ASSERT(string_view_at(sv, string_view_size(sv) - 1) == 'd', "Expect the character 'd'.");
+        TEST_ASSERT(string_view_at(sv, 1000) == '\0', "Expect the null terminator character.");        
+
+
+        TEST_ASSERT(string_view_at(empty_sv, 0) == '\0', "Expect the null terminator character.");        
+        TEST_ASSERT(string_view_at(empty_sv, 100) == '\0', "Expect the null terminator character.");        
+    }
+}
+
+
 TEST_SUITE(string_view_comparison){
 
     TEST_CASE("Comparison beetween string views"){
@@ -265,6 +299,7 @@ TEST_SUITE(string_view_prefix_suffix) {
 int main(void){
 
     REGISTER_AND_RUN_SUITE(string_view_creation);
+    REGISTER_AND_RUN_SUITE(string_view_operators);
     REGISTER_AND_RUN_SUITE(string_view_finding);
     REGISTER_AND_RUN_SUITE(string_view_substrings);
     REGISTER_AND_RUN_SUITE(string_view_comparison);

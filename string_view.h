@@ -58,40 +58,40 @@ size_t string_view_find_str(string_view_t sv, char* str, size_t pos);
 #include <ctype.h>
 #include <string.h>
 
-string_view_t new_string_view(const char* data, size_t size){
+inline string_view_t new_string_view(const char* data, size_t size){
     return (string_view_t) {
         .data = data,
         .count = size
     };
 }
 
-string_view_t new_string_view_from_cstr(const char* data){
+inline string_view_t new_string_view_from_cstr(const char* data){
     return new_string_view(data, strlen(data));
 }
 
-char string_view_at(string_view_t sv, size_t index){
+inline char string_view_at(string_view_t sv, size_t index){
     return index < sv.count
         ? sv.data[index]
         : '\0';
 }
 
-char string_view_front(string_view_t sv){    
-    return sv.data[0];
+inline char string_view_front(string_view_t sv){    
+    return string_view_at(sv, 0);
 }
 
-char string_view_back(string_view_t sv){
-    return sv.data[sv.count - 1];
+inline char string_view_back(string_view_t sv){
+    return string_view_at(sv, string_view_size(sv) - 1);
 }
 
-const char* string_view_data(string_view_t sv){
+inline const char* string_view_data(string_view_t sv){
     return sv.data;
 }
 
-size_t string_view_size(string_view_t sv){
+inline size_t string_view_size(string_view_t sv){
     return sv.count;
 }
 
-bool string_view_is_empty(string_view_t sv){
+inline bool string_view_is_empty(string_view_t sv){
     return sv.count == 0;
 }
 
@@ -108,7 +108,7 @@ void string_view_trim_right(string_view_t *sv) {
     }
 }
 
-void string_view_trim(string_view_t *sv){
+inline void string_view_trim(string_view_t *sv){
     string_view_trim_left(sv);
     string_view_trim_right(sv);
 }
@@ -122,7 +122,7 @@ void string_view_remove_prefix(string_view_t *sv, size_t pos){
     }
 }
 
-void string_view_remove_suffix(string_view_t *sv, size_t pos){
+inline void string_view_remove_suffix(string_view_t *sv, size_t pos){
     sv->count -= (pos > sv->count)
         ? sv->count
         : pos;
@@ -160,11 +160,11 @@ int string_view_compare(const string_view_t sv1, const string_view_t sv2){
     return strncmp(sv1.data, sv2.data, sv1.count);
 }
 
-bool string_view_equal(string_view_t sv1, string_view_t sv2){
+inline bool string_view_equal(string_view_t sv1, string_view_t sv2){
     return string_view_compare(sv1, sv2) == 0;
 }
 
-bool string_view_starts_with(string_view_t sv, const char* prefix, size_t len){
+inline bool string_view_starts_with(string_view_t sv, const char* prefix, size_t len){
     if(len > sv.count) return false;
     return strncmp(sv.data, prefix, len) == 0;
 }
@@ -190,7 +190,9 @@ size_t string_view_find_char(string_view_t sv, char c, size_t pos){
 size_t string_view_find_str(string_view_t sv, char* str, size_t pos){
     const size_t length = strlen(str);
 
-    for(size_t i = pos; i < sv.count ; i++){
+    if(length > sv.count) return STRING_VIEW_NPOS;
+
+    for(size_t i = pos; i <= sv.count - length; i++){
         if(strncmp(&sv.data[i], str, length) == 0) return i;
     }
 
