@@ -1,0 +1,14 @@
+name: C/C++ CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install gcc and make
+        run: |
+          sudo apt -y install build-essential > /dev/null
+      - name: Run tests
+        run: make test
