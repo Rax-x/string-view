@@ -10,7 +10,7 @@ TEST_SUITE(string_view_creation) {
     TEST_CASE("Create an empty string view"){
 
         string_view_t sv1 = new_string_view("", 0);
-        string_view_t sv2 = new_string_view_from_cstr("");
+        string_view_t sv2 = STRING_VIEW_EMPTY;
 
         TEST_ASSERT(string_view_is_empty(sv1), "Expect an empty string view.");
         TEST_ASSERT(string_view_is_empty(sv2), "Expect an empty string view.");
@@ -36,7 +36,7 @@ TEST_SUITE(string_view_creation) {
 TEST_SUITE(string_view_operators) {
     TEST_CASE("Retrive the first character of the string view"){
         string_view_t sv = new_string_view_from_cstr("Hello World");
-        string_view_t empty_sv = new_string_view_from_cstr("");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
 
         TEST_ASSERT(string_view_front(sv) == 'H', "Expect the character 'H'.");
         TEST_ASSERT(string_view_front(empty_sv) == '\0', "Expect the null terminator character.");
@@ -45,7 +45,7 @@ TEST_SUITE(string_view_operators) {
     TEST_CASE("Retrive the last character of the string view"){
 
         string_view_t sv = new_string_view_from_cstr("Hello World");
-        string_view_t empty_sv = new_string_view_from_cstr("");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
 
         TEST_ASSERT(string_view_back(sv) == 'd', "Expect the character 'd'.");
         TEST_ASSERT(string_view_back(empty_sv) == '\0', "Expect the null terminator character.");
@@ -54,7 +54,7 @@ TEST_SUITE(string_view_operators) {
     TEST_CASE("Retrive the character of the string view at the specified index"){
 
         string_view_t sv = new_string_view_from_cstr("Hello World");
-        string_view_t empty_sv = new_string_view_from_cstr("");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
 
         TEST_ASSERT(string_view_at(sv, 0) == 'H', "Expect the character 'H'.");
         TEST_ASSERT(string_view_at(sv, string_view_size(sv) - 1) == 'd', "Expect the character 'd'.");
@@ -96,7 +96,7 @@ TEST_SUITE(string_view_finding) {
 
     TEST_CASE("Find characters inside an empty string view"){
 
-        string_view_t sv = new_string_view_from_cstr("");
+        string_view_t sv = STRING_VIEW_EMPTY;
 
         TEST_ASSERT(string_view_find_char(sv, 'A', 10) == STRING_VIEW_NPOS,
                     "Expect STRING_VIEW_NPOS.");
@@ -129,7 +129,7 @@ TEST_SUITE(string_view_finding) {
     }
 
     TEST_CASE("Find substring inside an empty string view"){
-        string_view_t sv = new_string_view_from_cstr("");
+        string_view_t sv = STRING_VIEW_EMPTY;
 
         TEST_ASSERT(string_view_find_str(sv, "notinstirng", 0) == STRING_VIEW_NPOS,
                     "Expect STRING_VIEW_NPOS.");
@@ -159,7 +159,7 @@ TEST_SUITE(string_view_finding) {
 TEST_SUITE(string_view_substrings) {
 
     TEST_CASE("Substring of an empty string view"){
-        string_view_t empty_sv = new_string_view_from_cstr("");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
         
         string_view_t sub_view = string_view_substr(empty_sv, 10, 20);
         TEST_ASSERT(string_view_is_empty(sub_view), "Expect an empty string view.");
@@ -242,7 +242,7 @@ TEST_SUITE(string_view_prefix_suffix) {
 
     TEST_CASE("Remove prefix from a string view") {
         string_view_t sv = new_string_view_from_cstr("http://example.com");
-        string_view_t empty_sv = new_string_view_from_cstr("");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
 
         string_view_remove_prefix(&sv, 7);
         TEST_ASSERT(strncmp(string_view_data(sv), "example.com" , string_view_size(sv)) == 0,
@@ -257,7 +257,7 @@ TEST_SUITE(string_view_prefix_suffix) {
 
     TEST_CASE("Remove suffix from a string view") {
         string_view_t sv = new_string_view_from_cstr("test-name-file.txt");
-        string_view_t empty_sv = new_string_view_from_cstr("");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
 
         string_view_remove_suffix(&sv, 4);
         TEST_ASSERT(strncmp(string_view_data(sv), "test-name-file", string_view_size(sv)) == 0,
@@ -274,7 +274,7 @@ TEST_SUITE(string_view_prefix_suffix) {
     TEST_CASE("Check if a string view starts with a specified prefix"){
 
         string_view_t sv = new_string_view_from_cstr("http://google.com");
-        string_view_t empty_sv = new_string_view_from_cstr("");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
 
         TEST_ASSERT(string_view_starts_with(sv, "http://", 7), "Expcet true.");
         TEST_ASSERT(string_view_starts_with(sv, "http://google.com/", string_view_size(sv)+1) == false,
@@ -287,7 +287,7 @@ TEST_SUITE(string_view_prefix_suffix) {
     TEST_CASE("Check if a string view ends with a specified suffix."){
 
         string_view_t sv = new_string_view_from_cstr("http://google.com");
-        string_view_t empty_sv = new_string_view_from_cstr("");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
 
         TEST_ASSERT(string_view_ends_with(empty_sv, "hello", 5) == false, "Expect false");
         TEST_ASSERT(string_view_ends_with(sv, ".com", 4), "Expect true.");

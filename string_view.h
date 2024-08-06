@@ -9,7 +9,7 @@
 #define STRING_VIEW_FORMAT "%.*s"
 #define STRING_VIEW_ARG(sv) (sv).count, (sv).data
 
-#define STRING_VIEW_NULL ((string_view_t) {.data = NULL, .count = 0})
+#define STRING_VIEW_EMPTY (new_string_view("", 0))
 
 #define STRING_VIEW_NPOS ((size_t)-1)
 
@@ -50,6 +50,21 @@ bool string_view_ends_with(string_view_t sv, const char* suffix, size_t len);
 
 size_t string_view_find_char(string_view_t sv, char c, size_t pos);
 size_t string_view_find_str(string_view_t sv, char* str, size_t pos);
+
+#if defined(__STDC__) && defined(__STDC_VERSION___) && __STDC_VERSION__ >= 201112L
+
+#define string_view_contains(sv, needle) \
+    _Generic(needle,                                                    \
+             char : (string_view_find_char(sv, needle, 0) != STRINGSTRING_VIEW_NPOS), \
+             const char* : (string_view_find_str(sv, needle, 0) != STRINGSTRING_VIEW_NPOS), \
+             char* : (string_view_find_str(sv, needle, 0) != STRINGSTRING_VIEW_NPOS))
+
+#else
+
+#define string_view_contains_char(sv, c) (string_view_find_char(sv, needle, 0) != STRINGSTRING_VIEW_NPOS)
+#define string_view_contains_str(sv, c) (string_view_find_str(sv, needle, 0) != STRINGSTRING_VIEW_NPOS)
+
+#endif
 
 #endif
 
@@ -115,7 +130,7 @@ inline void string_view_trim(string_view_t *sv){
 
 void string_view_remove_prefix(string_view_t *sv, size_t pos){
     if(pos > sv->count){
-        *sv = STRING_VIEW_NULL;
+        *sv = STRING_VIEW_EMPTY;
     }else{
         sv->data += pos;
         sv->count -= pos;
@@ -149,7 +164,7 @@ string_view_t string_view_substr(string_view_t sv, size_t pos, size_t count){
 
     return (pos < sv.count) 
         ? new_string_view(&sv.data[pos], count)
-        : STRING_VIEW_NULL;
+        : STRING_VIEW_EMPTY;
 }
 
 int string_view_compare(const string_view_t sv1, const string_view_t sv2){
