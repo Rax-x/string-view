@@ -1,172 +1,314 @@
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
+#include <stdlib.h>
 
+#include "test_utils.h"
+
+#define STRING_VIEW_IMPLEMENTATION
 #include "../string_view.h"
 
-#define PRINT_INFO_MESSAGE(msg) printf("\e[1;32m%s\e[0m\n", msg);
+TEST_SUITE(string_view_creation) {
 
-void test_sv_trim(){
-    string_view sv = sv_from_parts("  Hello World!!!\n\n  ", 20);
+    TEST_CASE("Create an empty string view"){
+
+        string_view_t sv1 = new_string_view("", 0);
+        string_view_t sv2 = STRING_VIEW_EMPTY;
+
+        TEST_ASSERT(string_view_is_empty(sv1), "Expect an empty string view.");
+        TEST_ASSERT(string_view_is_empty(sv2), "Expect an empty string view.");
+    }
+
+    TEST_CASE("Create a new string view"){
+
+        string_view_t sv = new_string_view("Hello World", 11);
+
+        TEST_ASSERT(!string_view_is_empty(sv), "Expect a non empty string view.");
+        TEST_ASSERT(string_view_size(sv) == 11, "Expect string view size equal to 11.");
+    }
+
+    TEST_CASE("Create a new string view from a string literal"){
+        string_view_t sv = new_string_view_from_cstr("Hello World");
+
+        TEST_ASSERT(!string_view_is_empty(sv), "Expect a non empty string view.");
+        TEST_ASSERT(string_view_size(sv) == 11, "Expect string view size equal to 11.");
+    }
+
+}
+
+TEST_SUITE(string_view_operators) {
+    TEST_CASE("Retrive the first character of the string view"){
+        string_view_t sv = new_string_view_from_cstr("Hello World");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
+
+        TEST_ASSERT(string_view_front(sv) == 'H', "Expect the character 'H'.");
+        TEST_ASSERT(string_view_front(empty_sv) == '\0', "Expect the null terminator character.");
+    }
+
+    TEST_CASE("Retrive the last character of the string view"){
+
+        string_view_t sv = new_string_view_from_cstr("Hello World");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
+
+        TEST_ASSERT(string_view_back(sv) == 'd', "Expect the character 'd'.");
+        TEST_ASSERT(string_view_back(empty_sv) == '\0', "Expect the null terminator character.");
+    }
+
+    TEST_CASE("Retrive the character of the string view at the specified index"){
+
+        string_view_t sv = new_string_view_from_cstr("Hello World");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
+
+        TEST_ASSERT(string_view_at(sv, 0) == 'H', "Expect the character 'H'.");
+        TEST_ASSERT(string_view_at(sv, string_view_size(sv) - 1) == 'd', "Expect the character 'd'.");
+        TEST_ASSERT(string_view_at(sv, 1000) == '\0', "Expect the null terminator character.");        
+
+
+        TEST_ASSERT(string_view_at(empty_sv, 0) == '\0', "Expect the null terminator character.");        
+        TEST_ASSERT(string_view_at(empty_sv, 100) == '\0', "Expect the null terminator character.");        
+    }
+}
+
+
+TEST_SUITE(string_view_comparison){
+
+    TEST_CASE("Comparison beetween string views"){
+
+        string_view_t sv1 = new_string_view("Hello", 5);
+        string_view_t sv2 = new_string_view("Hello World", 11);
+
+        TEST_ASSERT(string_view_compare(sv1, sv2) < 0, "Expect first string view less then second string view.");
+        TEST_ASSERT(string_view_compare(string_view_substr(sv2, 0, string_view_size(sv1)), sv1) == 0,
+                    "Expect equal string views.");
+
+        TEST_ASSERT(string_view_compare(sv1, string_view_substr(sv2, 0, 3)) > 0,
+                    "Expect first string view greater then second string view.");
+    }
+
+    TEST_CASE("Check equality beetween string views"){
+        string_view_t sv1 = new_string_view("Hello", 5);
+        string_view_t sv2 = new_string_view("Hello World", 11);
+
+        TEST_ASSERT(string_view_equal(sv1, sv2) == false, "Expect non equal string views.");
+        TEST_ASSERT(string_view_equal(sv1, string_view_substr(sv2, 0, 5)) == true, "Expect equal string views.");
+    }
+
+}
+
+TEST_SUITE(string_view_finding) {
+
+    TEST_CASE("Find characters inside an empty string view"){
+
+        string_view_t sv = STRING_VIEW_EMPTY;
+
+        TEST_ASSERT(string_view_find_char(sv, 'A', 10) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+
+        TEST_ASSERT(string_view_find_char(sv, '?', 0) == STRING_VIEW_NPOS,
+                    "Expect STIRNG_VIEW_NPOS.");
+
+        TEST_ASSERT(string_view_find_char(sv, ',', 100) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+    }
+
+    TEST_CASE("Find characters inside a string view"){
+
+        string_view_t sv = new_string_view_from_cstr("This is a string");
+
+        TEST_ASSERT(string_view_find_char(sv, 'a', 10) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+
+        TEST_ASSERT(string_view_find_char(sv, '.', 0) == STRING_VIEW_NPOS,
+                    "Expect STIRNG_VIEW_NPOS.");
+        TEST_ASSERT(string_view_find_char(sv, 'a', 100) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+
+        TEST_ASSERT(string_view_find_char(sv, 'a', 7) == 8, "Expect index equal to 8.");
+        TEST_ASSERT(string_view_find_char(sv, 'g', 7) == string_view_size(sv) - 1,
+                    "Expect index equal to 'string_view_size(sv) - 1'");
+
+        TEST_ASSERT(string_view_find_char(sv, 'T', 1) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+    }
+
+    TEST_CASE("Find substring inside an empty string view"){
+        string_view_t sv = STRING_VIEW_EMPTY;
+
+        TEST_ASSERT(string_view_find_str(sv, "notinstirng", 0) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+
+        TEST_ASSERT(string_view_find_str(sv, "Hello", 100) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+    }
+
+    TEST_CASE("Find a substring inside a string view"){
+        string_view_t sv = new_string_view_from_cstr("This is a string");
+
+        TEST_ASSERT(string_view_find_str(sv, "string", 10) == 10,
+                    "Expect index equal to 10.");
+
+        TEST_ASSERT(string_view_find_str(sv, "notinstirng", 0) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+
+        TEST_ASSERT(string_view_find_str(sv, "Hello", 100) == STRING_VIEW_NPOS,
+                    "Expect STRING_VIEW_NPOS.");
+
+        TEST_ASSERT(string_view_find_str(sv, "is", 4) == 5,
+                    "Expect index equal to 5.");
+    }
+}
+
+
+TEST_SUITE(string_view_substrings) {
+
+    TEST_CASE("Substring of an empty string view"){
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
+        
+        string_view_t sub_view = string_view_substr(empty_sv, 10, 20);
+        TEST_ASSERT(string_view_is_empty(sub_view), "Expect an empty string view.");
+    }
+
+    TEST_CASE("Substring of string view"){
+        string_view_t floating_number = new_string_view_from_cstr("12.243");
+        
+        string_view_t integral_part = string_view_substr(floating_number, 0, 2);
+        TEST_ASSERT(!string_view_is_empty(integral_part), "Expect a non empty string view.");
+        TEST_ASSERT(strncmp(string_view_data(integral_part), "12", string_view_size(integral_part)) == 0, 
+                    "Expect the substring equal to '12'.");
+
+        string_view_t decimal_part = string_view_substr(floating_number, 3, 233);
+        TEST_ASSERT(!string_view_is_empty(decimal_part), "Expect a non empty string view.");
+        TEST_ASSERT(string_view_size(decimal_part) == 3, "Expect the substring size equal to 3.");
+        TEST_ASSERT(strncmp(string_view_data(decimal_part), "243", string_view_size(integral_part)) == 0, 
+                    "Expect the substring equal to '243'.");
+    }
+
+    TEST_CASE("Parsing a simple url (https://example.com/?username=User1)"){
+
+        string_view_t url = new_string_view_from_cstr("https://example.com/?username=User1");
     
-    PRINT_INFO_MESSAGE("Running `sv_trim` test...");
-    
-    sv_trim(&sv);
-    assert(strncmp(sv_data(sv), "Hello World!!!", sv_size(sv)) == 0);
+        string_view_t protocol = string_view_substr(url, 0, 5);
+        string_view_t domain = string_view_substr(url, string_view_find_str(url, "://", 0) + 3, 11);
+        string_view_t query = string_view_substr(url, 21, string_view_size(url) - 21);
+        
+        TEST_ASSERT(strncmp(string_view_data(protocol), "https", string_view_size(protocol)) == 0,
+                    "Expect the substirng equal to 'https'.");
+
+        TEST_ASSERT(strncmp(string_view_data(domain), "example.com", string_view_size(domain)) == 0,
+                    "Expect the substirng equal to 'example.com'.");
+
+        TEST_ASSERT(strncmp(string_view_data(query), "username=User1", string_view_size(query)) == 0,
+                    "Expect the substirng equal to 'username=User1'.");
+    }
 }
 
-void test_sv_remove_prefix(){
-    string_view sv = sv_from_str("http://example.com");
-    
-    PRINT_INFO_MESSAGE("Running `sv_remove_prefix` tests...");
+TEST_SUITE(string_view_utils) {
 
-    sv_remove_prefix(&sv, 7);
-    assert(strncmp(sv_data(sv), "example.com" , sv_size(sv)) == 0);
+    TEST_CASE("Trim string views"){
+        string_view_t sv = new_string_view("  Hello World!!!\n\n  ", 20);
+        string_view_t spaces_sv = new_string_view_from_cstr("      \n      \t\r");
 
-    sv_remove_prefix(&sv, sv_size(sv)+1);
-    assert(sv_is_null(sv) == true);
-}
+        string_view_trim_left(&sv);
+        string_view_trim_right(&sv);
+        TEST_ASSERT(strncmp(string_view_data(sv), "Hello World!!!", string_view_size(sv)) == 0,
+                    "Expect 'Hello World!!!'.");
 
-void test_sv_remove_suffix(){
-    string_view sv = sv_from_str("test-name-file.txt");
+        string_view_trim(&spaces_sv);
+        TEST_ASSERT(string_view_size(spaces_sv) == 0, "Expect an empty string view.");
+    }
 
-    PRINT_INFO_MESSAGE("Running `sv_remove_suffix` tests...");
+    TEST_CASE("Swap beetween string views"){
+        string_view_t sv1 = new_string_view_from_cstr("Hello");
+        string_view_t sv2 = new_string_view_from_cstr("Hello1");
 
-    sv_remove_suffix(&sv, 4);
-    assert(strncmp(sv_data(sv), "test-name-file", sv_size(sv)) == 0);
+        string_view_swap(&sv1, &sv2);
 
-    sv_remove_prefix(&sv, sv_size(sv)+1);
-    assert(sv_is_null(sv) == true);
-}
+        TEST_ASSERT(strncmp(string_view_data(sv1), "Hello1", string_view_size(sv1)) == 0 &&
+                    strncmp(string_view_data(sv2), "Hello", string_view_size(sv2)) == 0,
+                    "Expect the contents of sv1 in sv2 and viceversa.");
+    }
 
-void test_sv_swap(){
-    string_view sv1 = sv_from_str("Hello");
-    string_view sv2 = sv_from_str("Hello1");
+    TEST_CASE("Copy string view content in an exnternal buffer"){
 
-    PRINT_INFO_MESSAGE("Running `sv_swap` test...");
+        char buffer[30] = {0};
+        string_view_t sv = new_string_view_from_cstr("Hello World");
 
-    sv_swap(&sv1, &sv2);
+        string_view_copy(sv, buffer, 5, 0);
+        string_view_copy(sv, &buffer[5], 5, 6);
 
-    assert(
-        strncmp(sv_data(sv1), "Hello1", sv_size(sv1)) == 0 &&
-        strncmp(sv_data(sv2), "Hello", sv_size(sv2)) == 0
-    );
-}
-
-void test_sv_copy(){
-
-    char buffer[30];
-    string_view sv = sv_from_str("Hello World");
-
-    PRINT_INFO_MESSAGE("Running `sv_copy` test...");
-
-    sv_copy(sv, buffer, 5, 6);
-    assert(strncmp(buffer, "World", 5) == 0);
-
-    sv_copy(sv, buffer, 12, 6);
-    assert(strncmp(buffer, "World", 5) == 0);
-}
-
-void test_sv_substr(){
-    
-    string_view sv = sv_from_str("http://example.com/");
-    
-    PRINT_INFO_MESSAGE("Running `sv_substr` tests...");
-    
-    string_view result = sv_substr(sv, 7, 11);
-    assert(strncmp(sv_data(result), "example.com", sv_size(result)) == 0);
-
-    result = sv_substr(sv, 7, 15);
-    assert(strncmp(sv_data(result), "example.com/", sv_size(result)) == 0);
-
-    result = sv_substr(sv, sv_size(sv)+1, 11);
-    assert(sv_is_null(result) == true);
-}
-
-void test_sv_compare(){
-
-    string_view sv1 = sv_from_parts("Hello", 5);
-    string_view sv2 = sv_from_parts("Hello World", 11);
-
-    PRINT_INFO_MESSAGE("Running `sv_compare` tests...");
-
-    assert(sv_compare(sv1, sv2) < 0);
-    assert(sv_compare(sv_substr(sv2, 0, sv_size(sv1)), sv1) == 0);
-    assert(sv_compare(sv1, sv_substr(sv2, 0, 3)) > 0);
-}
-
-void test_sv_equal(){
-    string_view sv1 = sv_from_parts("Hello", 5);
-    string_view sv2 = sv_from_parts("Hello World", 11);
-
-    PRINT_INFO_MESSAGE("Running `sv_equal` tests...");
-
-    assert(sv_equal(sv1, sv2) == false);
-    assert(sv_equal(sv1, sv_substr(sv2, 0, 5)) == true);
-}
-
-void test_sv_starts_with(){
-
-    string_view sv = sv_from_str("http://google.com");
-
-    PRINT_INFO_MESSAGE("Running `sv_starts_with` tests..."); 
-
-    assert(sv_starts_with(sv, "http://", 7) == true);
-    assert(sv_starts_with(sv, "http://google.com/", sv_size(sv)+1) == false);
-    assert(sv_starts_with(sv, "", 5) == false);
-}
-
-void test_sv_ends_with(){
-
-    string_view sv = sv_from_str("http://google.com");
-
-    PRINT_INFO_MESSAGE("Running `sv_ends_with` tests..."); 
-
-    assert(sv_ends_with(sv, ".com", 4) == true);
-    assert(sv_ends_with(sv, "http://google.com/", sv_size(sv)+1) == false);
-    assert(sv_ends_with(sv, "", 5) == false);
-}
-
-void test_sv_find_char(){
-    string_view sv = sv_from_str("This is a string");
-
-    PRINT_INFO_MESSAGE("Running `sv_find_char` tests...");
-
-    assert(sv_find_char(sv, 'a', 10) == -1);
-    assert(sv_find_char(sv, '.', 0) == -1);
-    assert(sv_find_char(sv, 'a', -1) == -1);
-    assert(sv_find_char(sv, 'a', 7) == 8);
+        TEST_ASSERT(strncmp(buffer, "HelloWorld", 10) == 0, "Expect 'HelloWorld' string in the buffer.");
+    }
 
 }
 
-void test_sv_find_str(){
-    string_view sv = sv_from_str("This is a string");
+TEST_SUITE(string_view_prefix_suffix) {
 
-    PRINT_INFO_MESSAGE("Running `sv_find_str` tests...");
+    TEST_CASE("Remove prefix from a string view") {
+        string_view_t sv = new_string_view_from_cstr("http://example.com");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
 
-    assert(sv_find_str(sv, "string", 10) == 10);
-    assert(sv_find_str(sv, "pippo", 0) == -1);
-    assert(sv_find_str(sv, "Hello", -1) == -1);
-    assert(sv_find_str(sv, "is", 4) == 5);
+        string_view_remove_prefix(&sv, 7);
+        TEST_ASSERT(strncmp(string_view_data(sv), "example.com" , string_view_size(sv)) == 0,
+                    "Expect string view equal to 'example.com'.");
 
+        string_view_remove_prefix(&sv, string_view_size(sv)+1);
+        TEST_ASSERT(string_view_is_empty(sv), "Expect an empty string view.");
+
+        string_view_remove_prefix(&empty_sv, string_view_size(sv)+100);
+        TEST_ASSERT(string_view_is_empty(sv), "Expect an empty string view.");
+    }
+
+    TEST_CASE("Remove suffix from a string view") {
+        string_view_t sv = new_string_view_from_cstr("test-name-file.txt");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
+
+        string_view_remove_suffix(&sv, 4);
+        TEST_ASSERT(strncmp(string_view_data(sv), "test-name-file", string_view_size(sv)) == 0,
+                    "Expect the string view without '.txt' suffix.");
+
+        string_view_remove_suffix(&sv, string_view_size(sv)+1);
+        TEST_ASSERT(string_view_is_empty(sv), "Expect an empty string view.");
+
+        string_view_remove_suffix(&empty_sv, 11);
+        TEST_ASSERT(string_view_is_empty(sv), "Expect an empty string view.");
+    }
+
+
+    TEST_CASE("Check if a string view starts with a specified prefix"){
+
+        string_view_t sv = new_string_view_from_cstr("http://google.com");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
+
+        TEST_ASSERT(string_view_starts_with(sv, "http://", 7), "Expcet true.");
+        TEST_ASSERT(string_view_starts_with(sv, "http://google.com/", string_view_size(sv)+1) == false,
+                    "Expect false.");
+
+        TEST_ASSERT(string_view_starts_with(sv, "", 5) == false, "Expect false.");
+        TEST_ASSERT(string_view_starts_with(empty_sv, "hello", 5) == false, "Expect false");
+    }
+
+    TEST_CASE("Check if a string view ends with a specified suffix."){
+
+        string_view_t sv = new_string_view_from_cstr("http://google.com");
+        string_view_t empty_sv = STRING_VIEW_EMPTY;
+
+        TEST_ASSERT(string_view_ends_with(empty_sv, "hello", 5) == false, "Expect false");
+        TEST_ASSERT(string_view_ends_with(sv, ".com", 4), "Expect true.");
+        TEST_ASSERT(string_view_ends_with(sv, "http://google.com/", string_view_size(sv)+1) == false, "Expect false.");
+        TEST_ASSERT(string_view_ends_with(sv, "", 5) == false, "Expect false.");
+    }
 }
 
 int main(void){
 
-    test_sv_trim();
-    test_sv_remove_prefix();
-    test_sv_remove_suffix();
-    test_sv_swap();
-    test_sv_copy();
-    test_sv_substr();
-    test_sv_compare();
-    test_sv_equal();
-    test_sv_starts_with();
-    test_sv_ends_with();
-    test_sv_find_char();
-    test_sv_find_str();
+    REGISTER_AND_RUN_SUITE(string_view_creation);
+    REGISTER_AND_RUN_SUITE(string_view_operators);
+    REGISTER_AND_RUN_SUITE(string_view_finding);
+    REGISTER_AND_RUN_SUITE(string_view_substrings);
+    REGISTER_AND_RUN_SUITE(string_view_comparison);
+    REGISTER_AND_RUN_SUITE(string_view_prefix_suffix);
+    REGISTER_AND_RUN_SUITE(string_view_utils);
 
-    PRINT_INFO_MESSAGE("\nAll Test passed!!! :)");
+    PRINT_TEST_RESULT();
 
-    return 0;
+    return TEST_FAILED_COUNT() != 0
+        ? EXIT_FAILURE
+        : EXIT_SUCCESS;
 }
