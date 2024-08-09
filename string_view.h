@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <stdio.h>
     
 #define STRING_VIEW_FORMAT "%.*s"
 #define STRING_VIEW_ARG(sv) (sv).count, (sv).data
@@ -51,19 +50,17 @@ bool string_view_ends_with(string_view_t sv, const char* suffix, size_t len);
 size_t string_view_find_char(string_view_t sv, char c, size_t pos);
 size_t string_view_find_str(string_view_t sv, char* str, size_t pos);
 
-#if defined(__STDC__) && defined(__STDC_VERSION___) && __STDC_VERSION__ >= 201112L
 
-#define string_view_contains(sv, needle) \
-    _Generic(needle,                                                    \
-             char : (string_view_find_char(sv, needle, 0) != STRINGSTRING_VIEW_NPOS), \
-             const char* : (string_view_find_str(sv, needle, 0) != STRINGSTRING_VIEW_NPOS), \
-             char* : (string_view_find_str(sv, needle, 0) != STRINGSTRING_VIEW_NPOS))
+#if defined(__STDC__) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 
+#define string_view_contains(sv, needle)                \
+    (_Generic((needle),                                 \
+              int : string_view_find_char,              \
+              const char* : string_view_find_str,       \
+              char* : string_view_find_str)(sv, needle, 0) != STRING_VIEW_NPOS)
 #else
-
-#define string_view_contains_char(sv, c) (string_view_find_char(sv, needle, 0) != STRINGSTRING_VIEW_NPOS)
-#define string_view_contains_str(sv, c) (string_view_find_str(sv, needle, 0) != STRINGSTRING_VIEW_NPOS)
-
+#define string_view_contains_char(sv, needle) (string_view_find_char(sv, needle, 0) != STRING_VIEW_NPOS)
+#define string_view_contains_str(sv, needle) (string_view_find_str(sv, needle, 0) != STRING_VIEW_NPOS)
 #endif
 
 #endif
