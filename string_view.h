@@ -12,7 +12,7 @@
 
 #define STRING_VIEW_NPOS ((size_t)-1)
 
-typedef struct _string_view {
+typedef struct {
     const char* data;
     size_t count;
 } string_view_t;
@@ -33,34 +33,32 @@ void string_view_trim_left(string_view_t *sv);
 void string_view_trim_right(string_view_t *sv);
 void string_view_trim(string_view_t *sv);
 
-void string_view_remove_prefix(string_view_t *sv, size_t pos);
-void string_view_remove_suffix(string_view_t *sv, size_t pos);  
-    
-void string_view_swap(string_view_t* sv1, string_view_t* sv2); 
-void string_view_copy(string_view_t sv, char *dest, size_t size, size_t pos);
+void string_view_remove_prefix(string_view_t *sv, size_t prefix_start);
+void string_view_remove_suffix(string_view_t *sv, size_t suffix_start);
 
-string_view_t string_view_substr(string_view_t sv, size_t pos, size_t count);
+void string_view_swap(string_view_t* sv1, string_view_t* sv2); 
+void string_view_copy(string_view_t sv, char *dest, size_t count, size_t start);
+
+string_view_t string_view_substr(string_view_t sv, size_t start, size_t count);
 
 int string_view_compare(string_view_t sv1, string_view_t sv2);
 bool string_view_equal(string_view_t sv1, string_view_t sv2);
 
-bool string_view_starts_with(string_view_t sv, const char* prefix, size_t len);
-bool string_view_ends_with(string_view_t sv, const char* suffix, size_t len);
+bool string_view_starts_with(string_view_t sv, string_view_t prefix);
+bool string_view_ends_with(string_view_t sv, string_view_t suffix);
 
-size_t string_view_find_char(string_view_t sv, char c, size_t pos);
-size_t string_view_find_str(string_view_t sv, char* str, size_t pos);
-
+size_t string_view_find_char(string_view_t sv, char c, size_t start);
+size_t string_view_find_substring(string_view_t haystack, string_view_t needle, size_t start);
 
 #if defined(__STDC__) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 
-#define string_view_contains(sv, needle)                \
-    (_Generic((needle),                                 \
-              int : string_view_find_char,              \
-              const char* : string_view_find_str,       \
-              char* : string_view_find_str)(sv, needle, 0) != STRING_VIEW_NPOS)
+#define string_view_contains(haystack, needle)                          \
+    (_Generic((needle),                                                 \
+              int : string_view_find_char,                              \
+              string_view_t : string_view_find_substring)(sv, needle, 0) != STRING_VIEW_NPOS)
 #else
-#define string_view_contains_char(sv, needle) (string_view_find_char(sv, needle, 0) != STRING_VIEW_NPOS)
-#define string_view_contains_str(sv, needle) (string_view_find_str(sv, needle, 0) != STRING_VIEW_NPOS)
+#define string_view_contains_char(haystack, needle) (string_view_find_char(haystack, needle, 0) != STRING_VIEW_NPOS)
+#define string_view_contains_substring(haystack, needle) (string_view_find_substring(haystack, needle, 0) != STRING_VIEW_NPOS)
 #endif
 
 #endif
@@ -125,19 +123,19 @@ inline void string_view_trim(string_view_t *sv){
     string_view_trim_right(sv);
 }
 
-void string_view_remove_prefix(string_view_t *sv, size_t pos){
-    if(pos > sv->count){
+void string_view_remove_prefix(string_view_t *sv, size_t prefix_start){
+    if(prefix_start > sv->count){
         *sv = STRING_VIEW_EMPTY;
     }else{
-        sv->data += pos;
-        sv->count -= pos;
+        sv->data += prefix_start;
+        sv->count -= prefix_start;
     }
 }
 
-inline void string_view_remove_suffix(string_view_t *sv, size_t pos){
-    sv->count -= (pos > sv->count)
+inline void string_view_remove_suffix(string_view_t *sv, size_t suffix_start){
+    sv->count -= (suffix_start > sv->count)
         ? sv->count
-        : pos;
+        : suffix_start;
 }
 
 void string_view_swap(string_view_t* sv1, string_view_t* sv2){
@@ -146,21 +144,21 @@ void string_view_swap(string_view_t* sv1, string_view_t* sv2){
     *sv2 = tmp;
 }
 
-void string_view_copy(string_view_t sv, char *dest, size_t size, size_t pos){
+void string_view_copy(string_view_t sv, char *dest, size_t count, size_t start){
 
-    if(dest == NULL || pos > sv.count) return;
-    if(size > sv.count) size = sv.count - pos;
+    if(dest == NULL || start > sv.count) return;
+    if(count > sv.count) count = sv.count - start;
 
-    memcpy(dest, &sv.data[pos], size);
+    memcpy(dest, &sv.data[start], count);
 }
 
-string_view_t string_view_substr(string_view_t sv, size_t pos, size_t count){  
-    if(count > (sv.count - pos)) {
-        count = sv.count - pos;
+string_view_t string_view_substr(string_view_t sv, size_t start, size_t count){  
+    if(count > (sv.count - start)) {
+        count = sv.count - start;
     }
 
-    return (pos < sv.count) 
-        ? new_string_view(&sv.data[pos], count)
+    return (start < sv.count) 
+        ? new_string_view(&sv.data[start], count)
         : STRING_VIEW_EMPTY;
 }
 
@@ -176,36 +174,36 @@ inline bool string_view_equal(string_view_t sv1, string_view_t sv2){
     return string_view_compare(sv1, sv2) == 0;
 }
 
-inline bool string_view_starts_with(string_view_t sv, const char* prefix, size_t len){
-    if(len > sv.count) return false;
-    return strncmp(sv.data, prefix, len) == 0;
+inline bool string_view_starts_with(string_view_t sv, string_view_t prefix){
+    if(prefix.count > sv.count) return false;
+    return strncmp(sv.data, prefix.data, prefix.count) == 0;
 }
 
 
-bool string_view_ends_with(string_view_t sv, const char* suffix, size_t len){
+bool string_view_ends_with(string_view_t sv, string_view_t suffix){
     
-    if(len > sv.count) return false;
+    if(suffix.count > sv.count) return false;
 
-    const size_t pos = sv.count - len;
-    return strncmp(&sv.data[pos], suffix, len) == 0;
+    const size_t pos = sv.count - suffix.count;
+    return strncmp(&sv.data[pos], suffix.data, suffix.count) == 0;
 }
 
-size_t string_view_find_char(string_view_t sv, char c, size_t pos){
+size_t string_view_find_char(string_view_t sv, char c, size_t start){
 
-    for(size_t i = pos; i < sv.count; i++){
+    for(size_t i = start; i < sv.count; i++){
         if(sv.data[i] == c) return i;
     }
 
     return STRING_VIEW_NPOS;
 }
 
-size_t string_view_find_str(string_view_t sv, char* str, size_t pos){
-    const size_t length = strlen(str);
+size_t string_view_find_substring(string_view_t haystack, string_view_t needle, size_t start){
 
-    if(length > sv.count) return STRING_VIEW_NPOS;
+    if(needle.count > haystack.count) return STRING_VIEW_NPOS;
 
-    for(size_t i = pos; i <= sv.count - length; i++){
-        if(strncmp(&sv.data[i], str, length) == 0) return i;
+    const size_t count = haystack.count - needle.count;
+    for(size_t i = start; i <= count; i++){
+        if(strncmp(&haystack.data[i], needle.data, needle.count) == 0) return i;
     }
 
     return STRING_VIEW_NPOS;

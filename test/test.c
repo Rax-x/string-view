@@ -130,27 +130,36 @@ TEST_SUITE(string_view_finding) {
 
     TEST_CASE("Find substring inside an empty string view"){
         string_view_t sv = STRING_VIEW_EMPTY;
+        string_view_t needle;
 
-        TEST_ASSERT(string_view_find_str(sv, "notinstirng", 0) == STRING_VIEW_NPOS,
+        needle = new_string_view_from_cstr("notinstirng");
+        TEST_ASSERT(string_view_find_substring(sv, needle, 0) == STRING_VIEW_NPOS,
                     "Expect STRING_VIEW_NPOS.");
 
-        TEST_ASSERT(string_view_find_str(sv, "Hello", 100) == STRING_VIEW_NPOS,
+        needle = new_string_view_from_cstr("Hello");
+        TEST_ASSERT(string_view_find_substring(sv, needle, 100) == STRING_VIEW_NPOS,
                     "Expect STRING_VIEW_NPOS.");
     }
 
     TEST_CASE("Find a substring inside a string view"){
         string_view_t sv = new_string_view_from_cstr("This is a string");
+        string_view_t needle;
 
-        TEST_ASSERT(string_view_find_str(sv, "string", 10) == 10,
+
+        needle = new_string_view_from_cstr("string");
+        TEST_ASSERT(string_view_find_substring(sv, needle, 10) == 10,
                     "Expect index equal to 10.");
 
-        TEST_ASSERT(string_view_find_str(sv, "notinstirng", 0) == STRING_VIEW_NPOS,
+        needle = new_string_view_from_cstr("notinstring");
+        TEST_ASSERT(string_view_find_substring(sv, needle, 0) == STRING_VIEW_NPOS,
                     "Expect STRING_VIEW_NPOS.");
 
-        TEST_ASSERT(string_view_find_str(sv, "Hello", 100) == STRING_VIEW_NPOS,
+        needle = new_string_view_from_cstr("Hello");
+        TEST_ASSERT(string_view_find_substring(sv, needle, 100) == STRING_VIEW_NPOS,
                     "Expect STRING_VIEW_NPOS.");
 
-        TEST_ASSERT(string_view_find_str(sv, "is", 4) == 5,
+        needle = new_string_view_from_cstr("is");
+        TEST_ASSERT(string_view_find_substring(sv, needle, 4) == 5,
                     "Expect index equal to 5.");
     }
 }
@@ -185,7 +194,10 @@ TEST_SUITE(string_view_substrings) {
         string_view_t url = new_string_view_from_cstr("https://example.com/?username=User1");
     
         string_view_t protocol = string_view_substr(url, 0, 5);
-        string_view_t domain = string_view_substr(url, string_view_find_str(url, "://", 0) + 3, 11);
+
+        size_t domain_position = string_view_find_substring(url, new_string_view_from_cstr("://"), 0) + 3;
+        string_view_t domain = string_view_substr(url, domain_position, 11);
+
         string_view_t query = string_view_substr(url, 21, string_view_size(url) - 21);
         
         TEST_ASSERT(strncmp(string_view_data(protocol), "https", string_view_size(protocol)) == 0,
@@ -276,12 +288,12 @@ TEST_SUITE(string_view_prefix_suffix) {
         string_view_t sv = new_string_view_from_cstr("http://google.com");
         string_view_t empty_sv = STRING_VIEW_EMPTY;
 
-        TEST_ASSERT(string_view_starts_with(sv, "http://", 7), "Expcet true.");
-        TEST_ASSERT(string_view_starts_with(sv, "http://google.com/", string_view_size(sv)+1) == false,
+        TEST_ASSERT(string_view_starts_with(sv, new_string_view_from_cstr("http://")), "Expcet true.");
+        TEST_ASSERT(string_view_starts_with(sv, new_string_view("http://google.com/", string_view_size(sv)+1)) == false,
                     "Expect false.");
 
-        TEST_ASSERT(string_view_starts_with(sv, "", 5) == false, "Expect false.");
-        TEST_ASSERT(string_view_starts_with(empty_sv, "hello", 5) == false, "Expect false");
+        TEST_ASSERT(string_view_starts_with(sv, STRING_VIEW_EMPTY), "Expect true.");
+        TEST_ASSERT(string_view_starts_with(empty_sv, new_string_view_from_cstr("hello")) == false, "Expect false");
     }
 
     TEST_CASE("Check if a string view ends with a specified suffix."){
@@ -289,10 +301,12 @@ TEST_SUITE(string_view_prefix_suffix) {
         string_view_t sv = new_string_view_from_cstr("http://google.com");
         string_view_t empty_sv = STRING_VIEW_EMPTY;
 
-        TEST_ASSERT(string_view_ends_with(empty_sv, "hello", 5) == false, "Expect false");
-        TEST_ASSERT(string_view_ends_with(sv, ".com", 4), "Expect true.");
-        TEST_ASSERT(string_view_ends_with(sv, "http://google.com/", string_view_size(sv)+1) == false, "Expect false.");
-        TEST_ASSERT(string_view_ends_with(sv, "", 5) == false, "Expect false.");
+        TEST_ASSERT(string_view_starts_with(empty_sv, new_string_view_from_cstr("hello")) == false, "Expect false");
+        TEST_ASSERT(string_view_starts_with(empty_sv, new_string_view_from_cstr("")), "Expect true");
+        TEST_ASSERT(string_view_ends_with(sv, new_string_view("http://google.com/", string_view_size(sv)+1)) == false,
+                    "Expect false.");
+
+        TEST_ASSERT(string_view_ends_with(sv, STRING_VIEW_EMPTY), "Expect true.");
     }
 }
 
