@@ -239,13 +239,19 @@ TEST_SUITE(string_view_utils) {
 
     TEST_CASE("Copy string view content in an exnternal buffer"){
 
-        char buffer[30] = {0};
+        char buffer1[30] = {0};
+        char buffer2[30] = {0};
         string_view_t sv = new_string_view_from_cstr("Hello World");
 
-        string_view_copy(sv, buffer, 5, 0);
-        string_view_copy(sv, &buffer[5], 5, 6);
+        string_view_copy(sv, buffer1, 5, 0);
+        string_view_copy(sv, &buffer1[5], 5, 6);
+        TEST_ASSERT(strncmp(buffer1, "HelloWorld", 10) == 0, "Expect 'HelloWorld' string in the buffer.");
 
-        TEST_ASSERT(strncmp(buffer, "HelloWorld", 10) == 0, "Expect 'HelloWorld' string in the buffer.");
+        string_view_copy(sv, buffer2, 10, 100);
+        TEST_ASSERT(strlen(buffer2) == 0, "Expect an empty buffer.");
+
+        string_view_copy(sv, buffer2, 13, 3);
+        TEST_ASSERT(strncmp(buffer2, "lo World", 9) == 0, "Expect 'lo World'.");
     }
 
 }
