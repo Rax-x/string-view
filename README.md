@@ -4,7 +4,7 @@ This is a simple porting of C++ `std::string_view` for the C programming languag
 This library is header-only and follows the [stb-style](https://github.com/nothings/stb).
 For more information about this style read [this](https://github.com/nothings/stb/blob/master/docs/stb_howto.txt).
 
-> [!NOTE]  
+> [!IMPORTANT]  
 > This library uses **C99** features ([Inline functions](https://en.wikipedia.org/wiki/Inline_function)). 
 
 ```c
