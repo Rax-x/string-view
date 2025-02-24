@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
 
 ```
 
-## How use this library?
+## ❓ How to use this library?
 
 Simple just include it and before the include directive add `#define STRING_VIEW_IMPLEMENTATION`.
 No linking or stuff like that is needed.
@@ -54,7 +54,7 @@ No linking or stuff like that is needed.
 > }
 > ```
 
-## Documentation
+## 📑 Documentation
 
 The full documentation is situated inside the [string_view.h](./string_view.h) file.
 
@@ -100,5 +100,9 @@ The full documentation is situated inside the [string_view.h](./string_view.h) f
 > |----------------------------------|-------------------------------------------------------|
 > | `string_view_contains_char`      | Checks if a string view contains a specific character |
 > | `string_view_contains_substring` | Checks if a string view contains a specific substring |
->
+
+## 🔭 Resources
+
+- [C++ std::string_view](https://en.cppreference.com/w/cpp/string/basic_string_view)
+- [Tsoding String_View](https://github.com/tsoding/sv)
 
