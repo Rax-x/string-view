@@ -1,4 +1,4 @@
-# String view implementation for C language
+# String view for C language
 
 This is a simple porting of C++ `std::string_view` for the C programming language. 
 This library is header-only and follows the [stb-style](https://github.com/nothings/stb).
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
 
 ```
 
-## ❓ How to use this library?
+## 🌱 How to use this library?
 
 Simple just include it and before the include directive add `#define STRING_VIEW_IMPLEMENTATION`.
 No linking or stuff like that is needed.
@@ -54,11 +54,11 @@ No linking or stuff like that is needed.
 > }
 > ```
 
-## 📑 Documentation
+## 📔 API
 
 The full documentation is situated inside the [string_view.h](./string_view.h) file.
 
-## Implemented functions
+## Functions
 
 | Function                     | Brief                                                                  |
 |------------------------------|------------------------------------------------------------------------|
